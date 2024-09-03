@@ -14,13 +14,19 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AddNewUserFormControls, addNewUserFormInitialState } from "@/utils"
-import { addNewUserAction } from "@/actions"
+import { addNewUserAction, editUserAction } from "@/actions"
+import { useContext } from "react"
+import { UserContext } from "@/context"
 
 export default function AddNewUser() {
-  const [openPopUp, setOpenPopUp] = useState(false)
-  const [addNewUserFormData, setAddNewUserFormData] = useState(
-    addNewUserFormInitialState
-  )
+  const {
+    openPopup,
+    setOpenPopup,
+    addNewUserFormData,
+    setAddNewUserFormData,
+    currentEditedID,
+    setCurrentEditedID,
+  } = useContext(UserContext)
 
   console.log(addNewUserFormData)
 
@@ -31,28 +37,37 @@ export default function AddNewUser() {
   }
 
   async function handleAddNewUserAction() {
-    const result = await addNewUserAction(
-      addNewUserFormData,
-      "/user-management"
-    )
+    // check if the user is editing or adding new data
+    const result =
+      currentEditedID !== null
+        ? await editUserAction(
+            currentEditedID,
+            addNewUserFormData,
+            "/user-management"
+          )
+        : await addNewUserAction(addNewUserFormData, "/user-management")
     console.log(result)
-    setOpenPopUp(false)
+    setOpenPopup(false)
     setAddNewUserFormData(addNewUserFormInitialState)
   }
 
   return (
     <div>
-      <Button onClick={() => setOpenPopUp(true)}>AddNewUser</Button>
+      <Button onClick={() => setOpenPopup(true)}>AddNewUser</Button>
       <Dialog
-        open={openPopUp}
+        open={openPopup}
         onOpenChange={() => {
-          setOpenPopUp(false)
+          setOpenPopup(false)
           setAddNewUserFormData(addNewUserFormInitialState)
+          setCurrentEditedID(null)
         }}
       >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Add New User</DialogTitle>
+            <DialogTitle>
+              {" "}
+              {currentEditedID !== null ? <p>Edit User</p> : <>Add New User</>}
+            </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleAddNewUserAction} className="grid gap-4  py-4">
             <div className="space-y-3">
